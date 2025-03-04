@@ -1,0 +1,141 @@
+// ==UserScript==
+// @name         [Stack] Auto Login - Admin
+// @namespace    http://tampermonkey.net/
+// @version      2024-09-17
+// @description  lolz
+// @author       You
+// @match        *://*/*
+// @icon         https://www.deindesign.de/assets/favicon-32x32.png
+// @grant        GM_registerMenuCommand
+
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    window.addEventListener('load', async function() {
+        var url = window.location.href;
+        var pattern = /^https:\/\/admin\..+\.designskins\.com\/login.html/;
+
+        // Funktion zum Erstellen eines benutzerdefinierten Eingabemodals
+        function createLoginModal() {
+            return new Promise((resolve) => {
+                // Modal-Hintergrund
+                const modalBackground = document.createElement('div');
+                modalBackground.style.position = 'fixed';
+                modalBackground.style.top = 0;
+                modalBackground.style.left = 0;
+                modalBackground.style.width = '100%';
+                modalBackground.style.height = '100%';
+                modalBackground.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                modalBackground.style.zIndex = '1000';
+                modalBackground.style.display = 'flex';
+                modalBackground.style.justifyContent = 'center';
+                modalBackground.style.alignItems = 'center';
+
+                // Modal-Box
+                const modalBox = document.createElement('div');
+                modalBox.style.backgroundColor = '#fff';
+                modalBox.style.padding = '20px';
+                modalBox.style.borderRadius = '10px';
+                modalBox.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+                modalBox.style.width = '300px';
+                modalBox.style.textAlign = 'center';
+
+                // Username-Feld
+                const usernameLabel = document.createElement('label');
+                usernameLabel.textContent = 'Benutzername:';
+                const usernameInput = document.createElement('input');
+                usernameInput.type = 'text';
+                usernameInput.style.width = '100%';
+                usernameInput.style.marginBottom = '10px';
+
+                // Passwort-Feld
+                const passwordLabel = document.createElement('label');
+                passwordLabel.textContent = 'Passwort:';
+                const passwordInput = document.createElement('input');
+                passwordInput.type = 'password'; // Passwort unkenntlich machen
+                passwordInput.style.width = '100%';
+                passwordInput.style.marginBottom = '10px';
+
+                // Bestätigungs-Button
+                const submitButton = document.createElement('button');
+                submitButton.textContent = 'Login';
+                submitButton.style.width = '100%';
+                submitButton.style.padding = '10px';
+                submitButton.style.backgroundColor = '#007bff';
+                submitButton.style.color = '#fff';
+                submitButton.style.border = 'none';
+                submitButton.style.cursor = 'pointer';
+
+                // Event-Listener für den Button
+                submitButton.addEventListener('click', () => {
+                    const username = usernameInput.value;
+                    const password = passwordInput.value;
+
+                    if (username && password) {
+                        document.body.removeChild(modalBackground);
+                        resolve({ username, password });
+                    } else {
+                        alert('Bitte fülle beide Felder aus.');
+                    }
+                });
+
+                // Zusammenfügen der Elemente
+                modalBox.appendChild(usernameLabel);
+                modalBox.appendChild(usernameInput);
+                modalBox.appendChild(passwordLabel);
+                modalBox.appendChild(passwordInput);
+                modalBox.appendChild(submitButton);
+                modalBackground.appendChild(modalBox);
+                document.body.appendChild(modalBackground);
+            });
+        }
+
+        // Funktion zum Abrufen der Anmeldedaten
+        async function getCredentials() {
+            let username = localStorage.getItem('adminLoginUsername');
+            let password = localStorage.getItem('adminLoginPassword');
+
+            if (!username || !password) {
+                const credentials = await createLoginModal();
+                if (credentials.username && credentials.password) {
+                    localStorage.setItem('adminLoginUsername', credentials.username);
+                    localStorage.setItem('adminLoginPassword', credentials.password);
+                }
+                return credentials;
+            }
+
+            return { username, password };
+        }
+
+
+        if (pattern.test(url)) {
+            let usernameField = document.getElementById('username');
+            let passwordField = document.getElementById('password');
+
+            if (usernameField && passwordField) {
+                // Anmeldedaten abrufen
+                let credentials = await getCredentials();
+                console.log('credentials:');
+                console.log(credentials.username);
+                console.log(credentials.password);
+                if (credentials.username && credentials.password) {
+                    // Anmeldedaten eingeben
+                    usernameField.value = credentials.username;
+                    passwordField.value = credentials.password;
+
+                    // Formular abschicken
+                    document.getElementById('submit').click();
+                }
+            }
+
+            GM_registerMenuCommand("Login-Daten zurücksetzen", function() {
+                localStorage.removeItem('adminLoginUsername');
+                localStorage.removeItem('adminLoginPassword');
+                alert('Login-Daten wurden zurückgesetzt.');
+            });
+
+        }
+    });
+})();
