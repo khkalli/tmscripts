@@ -4,7 +4,7 @@
 // @version      1.0
 // @description  Secure auto-login using a custom input modal for credentials stored in localStorage.
 // @author       khkalli
-// @match        https://intranet.cewe.lan/jira/login.jsp
+// @include      https://intranet.cewe.lan/*/login*
 // @icon         https://intranet.cewe.lan/jira/s/-iks11f/9120015/13kdaso/_/jira-favicon-hires.png
 // @grant        none
 // ==/UserScript==
@@ -107,7 +107,13 @@
     // Überprüfen, ob die Seite geladen ist und ob die Elemente vorhanden sind
     window.addEventListener('load', async function() {
         let usernameField = document.getElementById('login-form-username');
+        if(!usernameField) {
+            usernameField = document.querySelector('input[name="os_username"]');
+        }
         let passwordField = document.getElementById('login-form-password');
+        if(!passwordField) {
+            passwordField = document.querySelector('input[name="os_password"]')
+        }
         let formElement = usernameField ? usernameField.form : null;
 
         if (usernameField && passwordField && formElement) {
